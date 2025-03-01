@@ -24,5 +24,6 @@ steps:
 #    addToPath: true
 
 - script: |
-   pip install 
-    displayName: 'Install dependencies'
+   python --version
+   python -m pip --version
+    displayName: 'python version'
