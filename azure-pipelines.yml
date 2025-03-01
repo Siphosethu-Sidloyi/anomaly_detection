@@ -26,4 +26,9 @@ steps:
 - script: |
    python --version
    python -m pip --version
+   pip install -r requirements.txt
   displayName: 'python version'
+
+- script: |
+    python record_cpu_usage.py --duration 10 --interval 1
+  displayName: 'Record CPU Usage'
