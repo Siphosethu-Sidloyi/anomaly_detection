@@ -23,6 +23,6 @@ steps:
     versionSpec: '3.x'
     addToPath: true
 
-#- script: |
-#   pip install -r requirements.txt
-#    displayName: 'Install dependencies'
+- script: |
+   pip install 
+    displayName: 'Install dependencies'
