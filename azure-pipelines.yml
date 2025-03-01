@@ -26,4 +26,4 @@ steps:
 - script: |
    python --version
    python -m pip --version
-    displayName: 'python version'
+  displayName: 'python version'
