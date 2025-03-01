@@ -1,13 +1,8 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
 - main
 
 pool:
-  Default
+  vmImage: 'ubuntu-latest'
 
 steps:
 - script: echo Hello, world!
@@ -18,16 +13,15 @@ steps:
     echo See https://aka.ms/yaml
   displayName: 'Run a multi-line script'
 
-#- task: UsePythonVersion@0
-#  inputs:
-#    versionSpec: '3.x'
-#    addToPath: true
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.x'
+    addToPath: true
 
 - script: |
-   python --version
-   python -m pip --version
-   pip install -r requirements.txt
-  displayName: 'python version'
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+  displayName: 'Update pip and install dependencies'
 
 - script: |
     python record_cpu_usage.py --duration 10 --interval 1
