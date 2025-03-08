@@ -1,8 +1,3 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
 - main
 
@@ -14,6 +9,24 @@ steps:
   displayName: 'Run a one-line script'
 
 - script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+    echo "Recording baseline memory usage..."
+    python record_memory_usage.py 10 --output baseline_memory.csv
+  displayName: 'Record Baseline Memory Usage'
+
+- script: |
+    echo "Starting memory monitoring during compilation..."
+    python record_memory_usage.py 30 --output memory_usage.csv &  # Run memory monitoring in background
+    echo "Compiling the app..."
+    ./compile_app.sh  # Your compilation/build command
+    wait  # Wait for the background process to complete
+  displayName: 'Monitor Memory Usage While Compiling'
+
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.x'
+    addToPath: true
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+  displayName: 'Install dependencies'
