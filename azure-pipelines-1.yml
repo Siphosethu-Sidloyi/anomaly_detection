@@ -2,25 +2,9 @@ trigger:
 - main
 
 pool:
-  Default
+  vmImage: 'ubuntu-latest'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
-- script: |
-    echo "Recording baseline memory usage..."
-    python record_memory_usage.py 10 --output baseline_memory.csv
-  displayName: 'Record Baseline Memory Usage'
-
-- script: |
-    echo "Starting memory monitoring during compilation..."
-    python record_memory_usage.py 30 --output memory_usage.csv &  # Run memory monitoring in background
-    echo "Compiling the app..."
-    ./compile_app.sh  # Your compilation/build command
-    wait  # Wait for the background process to complete
-  displayName: 'Monitor Memory Usage While Compiling'
-
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '3.x'
@@ -30,3 +14,12 @@ steps:
     python -m pip install --upgrade pip
     pip install -r requirements.txt
   displayName: 'Install dependencies'
+
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: |
+      echo "Starting memory usage monitoring..."
+      python record_memory_usage.py 30 --output memory_usage.csv
+      echo "Memory usage monitoring completed. Data saved to memory_usage.csv."
+  displayName: 'Monitor Memory Usage'
