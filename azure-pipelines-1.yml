@@ -5,6 +5,14 @@ pool:
   Default
 
 steps:
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
+
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+    echo See https://aka.ms/yaml
+  displayName: 'Run a multi-line script'
+
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '3.x'
@@ -13,13 +21,8 @@ steps:
 - script: |
     python -m pip install --upgrade pip
     pip install -r requirements.txt
-  displayName: 'Install dependencies'
+  displayName: 'Update pip and install dependencies'
 
-- task: Bash@3
-  inputs:
-    targetType: 'inline'
-    script: |
-      echo "Starting memory usage monitoring..."
-      python record_memory_usage.py 30 --output memory_usage.csv
-      echo "Memory usage monitoring completed. Data saved to memory_usage.csv."
-  displayName: 'Monitor Memory Usage'
+- script: |
+    python record_memory_usage.py 30 --output memory_usage.csv
+  displayName: 'Record RAM Usage'
