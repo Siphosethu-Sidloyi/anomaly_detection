@@ -3,7 +3,7 @@ resources:
     - repository: calculatorRepo
       type: github
       name: Siphosethu-Sidloyi/calculator
-      endpoint: GitHubConnection
+      endpoint: Siphosethu-Sidloyi
 
 trigger:
 - main
