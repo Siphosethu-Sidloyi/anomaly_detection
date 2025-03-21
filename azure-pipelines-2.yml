@@ -1,8 +1,3 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
 - main
 
@@ -10,10 +5,18 @@ pool:
   default
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.x'
+    addToPath: true
 
 - script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+    pip install --upgrade pipenv
+    # Install dependencies as specified in Pipfile.lock; the --deploy flag ensures the Pipfile.lock is honored.
+    pipenv install --deploy --ignore-pipfile
+  displayName: 'Install Pipenv Dependencies'
+
+# - script: |
+#     # Run your application or tests within the Pipenv environment.
+#     pipenv run python app.py
+#   displayName: 'Run Application'
