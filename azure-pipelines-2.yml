@@ -15,16 +15,15 @@ steps:
 - checkout: calculatorRepo
   displayName: 'Checkout Calculator Repository'
 
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '3.11'
-    addToPath: true
-  displayName: 'Set Python 3.11'
+# - task: UsePythonVersion@0
+#   inputs:
+#     versionSpec: '3.11'
+#     addToPath: true
+#   displayName: 'Set Python 3.11'
 
 - script: |
     echo "Upgrading pipenv and installing dependencies..."
-    pip install --upgrade pipenv
-    pipenv install --deploy --ignore-pipfile
+    pipenv install 
   displayName: 'Install Dependencies Using Pipenv'
 
 - script: |
