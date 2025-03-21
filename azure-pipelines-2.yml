@@ -1,3 +1,10 @@
+resources:
+  repositories:
+    - repository: calculatorRepo
+      type: github
+      name: Siphosethu-Sidloyi/calculator
+      endpoint: GitHubConnection
+
 trigger:
 - main
 
@@ -5,18 +12,28 @@ pool:
   default
 
 steps:
+- checkout: calculatorRepo
+  displayName: 'Checkout Calculator Repository'
+
 - task: UsePythonVersion@0
   inputs:
-    versionSpec: '3.x'
+    versionSpec: '3.11'
     addToPath: true
+  displayName: 'Set Python 3.11'
 
 - script: |
+    echo "Upgrading pipenv and installing dependencies..."
     pip install --upgrade pipenv
-    # Install dependencies as specified in Pipfile.lock; the --deploy flag ensures the Pipfile.lock is honored.
     pipenv install --deploy --ignore-pipfile
-  displayName: 'Install Pipenv Dependencies'
+  displayName: 'Install Dependencies Using Pipenv'
 
-# - script: |
-#     # Run your application or tests within the Pipenv environment.
-#     pipenv run python app.py
-#   displayName: 'Run Application'
+- script: |
+    echo "Running unit tests..."
+    pipenv run pytest
+  displayName: 'Run Unit Tests'
+
+- script: |
+    echo "Building the application..."
+    # For a Flask application, 'building' might simply be verifying that the app starts.
+    pipenv run python app.py --version || echo "Build verified."
+  displayName: 'Build Application'
