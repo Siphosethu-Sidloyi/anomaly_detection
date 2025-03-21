@@ -23,13 +23,13 @@ steps:
 
 - script: |
     echo "Upgrading pipenv and installing dependencies..."
-    cd $(Build.SourcesDirectory)\calculatorRepo
+    cd $(Build.SourcesDirectory)\calculator
     pipenv install 
   displayName: 'Install Dependencies Using Pipenv'
 
 - script: |
     echo "Running unit tests..."
-    xs $(Build.SourcesDirectory)\calculatorRepo
+    xs $(Build.SourcesDirectory)\calculator
     pipenv run pytest
   displayName: 'Run Unit Tests'
 
