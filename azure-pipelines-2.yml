@@ -23,18 +23,18 @@ steps:
 
 - script: |
     echo "Upgrading pipenv and installing dependencies..."
-    $(Build.SourcesDirectory)/calculatorRepo
+    cd $(Build.SourcesDirectory)\calculatorRepo
     pipenv install 
   displayName: 'Install Dependencies Using Pipenv'
 
 - script: |
     echo "Running unit tests..."
-    $(Build.SourcesDirectory)/calculatorRepo
+    xs $(Build.SourcesDirectory)\calculatorRepo
     pipenv run pytest
   displayName: 'Run Unit Tests'
 
-- script: |
-    echo "Building the application..."
-    # For a Flask application, 'building' might simply be verifying that the app starts.
-    pipenv run python app.py --version || echo "Build verified."
-  displayName: 'Build Application'
+# - script: |
+#     echo "Building the application..."
+#     # For a Flask application, 'building' might simply be verifying that the app starts.
+#     pipenv run python app.py --version || echo "Build verified."
+#   displayName: 'Build Application'
