@@ -24,8 +24,7 @@ steps:
 - script: |
     echo "Upgrading pipenv and installing dependencies..."
     dir
-    #cd $(Build.SourcesDirectory)/calculator
-    #  pipenv install 
+    pipenv install 
   displayName: 'Install Dependencies Using Pipenv'
 
 # - script: |
