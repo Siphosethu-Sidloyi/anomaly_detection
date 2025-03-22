@@ -27,10 +27,10 @@ steps:
     pipenv install 
   displayName: 'Install Dependencies Using Pipenv'
 
-# - script: |
-#     echo "Running unit tests..."
-#     pipenv run pytest
-#   displayName: 'Run Unit Tests'
+- script: |
+    echo "Running unit tests..."
+    pipenv run pytest
+  displayName: 'Run Unit Tests'
 
 # - script: |
 #     echo "Building the application..."
