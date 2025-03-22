@@ -21,17 +21,16 @@ steps:
 #     addToPath: true
 #   displayName: 'Set Python 3.11'
 
-- script: |
-    echo "Upgrading pipenv and installing dependencies..."
-    dir
-    pipenv install 
-  displayName: 'Install Dependencies Using Pipenv'
-
 # - script: |
-#     echo "Running unit tests..."
-#     cd $(Build.SourcesDirectory)/calculator
-#     pipenv run pytest
-#   displayName: 'Run Unit Tests'
+#     echo "Upgrading pipenv and installing dependencies..."
+#     dir
+#     pipenv install 
+#   displayName: 'Install Dependencies Using Pipenv'
+
+- script: |
+    echo "Running unit tests..."
+    pipenv run pytest
+  displayName: 'Run Unit Tests'
 
 # - script: |
 #     echo "Building the application..."
