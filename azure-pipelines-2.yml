@@ -29,7 +29,7 @@ steps:
 
 - script: |
     echo "Running unit tests..."
-    pipenv run pytest
+    pipenv run python tests.py
   displayName: 'Run Unit Tests'
 
 # - script: |
