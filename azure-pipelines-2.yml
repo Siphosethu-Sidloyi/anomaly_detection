@@ -6,7 +6,7 @@ resources:
       endpoint: Siphosethu-Sidloyi
 
 trigger:
-- main
+- none
 
 pool:
   default
