@@ -18,13 +18,13 @@ steps:
       start /B cmd /c "pipenv run python record_memory_usage.py 60 memory_usage.csv"
       
       echo Capturing start time...
-      for /f %%i in ('powershell -NoProfile -Command "([int](Get-Date -UFormat s))"') do set start=%%i
+      for /f "usebackq" %%i in (`powershell -NoProfile -Command "([int](Get-Date -UFormat s))"`) do set start=%%i
       
       echo Running unit tests...
       pipenv run python tests.py
       
       echo Capturing end time...
-      for /f %%i in ('powershell -NoProfile -Command "([int](Get-Date -UFormat s))"') do set end=%%i
+      for /f "usebackq" %%i in (`powershell -NoProfile -Command "([int](Get-Date -UFormat s))"`) do set end=%%i
       
       set /A duration=end - start
       echo Unit tests took %duration% seconds
@@ -37,11 +37,26 @@ steps:
       echo Waiting for background measurement processes to finish...
       timeout /T 65 /NOBREAK
       
-      echo Aggregating metrics into combined_metrics.csv...
-      type cpu_usage.csv > combined_metrics.csv
-      more +1 memory_usage.csv >> combined_metrics.csv
-      more +1 test_duration.csv >> combined_metrics.csv
-      
-      echo Combined metrics:
-      type combined_metrics.csv
+      echo Aggregating metrics into combined_metrics.csv using Python...
+      pipenv run python -c "import pandas as pd; \
+      try: \
+          df_cpu = pd.read_csv('cpu_usage.csv', header=None, names=['timestamp','total_memory','used_memory','percent']); \
+          df_cpu = df_cpu[['timestamp','used_memory','percent']]; \
+      except Exception as e: \
+          df_cpu = pd.DataFrame(); print('CPU file error:', e); \
+      try: \
+          df_mem = pd.read_csv('memory_usage.csv', header=None, names=['timestamp','total_memory','used_memory','percent']); \
+          df_mem = df_mem[['timestamp','used_memory','percent']]; \
+      except Exception as e: \
+          df_mem = pd.DataFrame(); print('Memory file error:', e); \
+      try: \
+          df_test = pd.read_csv('test_duration.csv'); \
+      except Exception as e: \
+          df_test = pd.DataFrame(); print('Test duration file error:', e); \
+      df_cpu.to_csv('combined_metrics.csv', index=False); \
+      if not df_mem.empty: \
+          df_mem.to_csv('combined_metrics.csv', mode='a', index=False, header=False); \
+      if not df_test.empty: \
+          df_test.to_csv('combined_metrics.csv', mode='a', index=False, header=False); \
+      print(open('combined_metrics.csv').read())"
   displayName: 'Install, Measure, Run Tests, and Aggregate Metrics'
