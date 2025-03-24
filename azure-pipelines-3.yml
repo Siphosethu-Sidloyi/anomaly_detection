@@ -9,7 +9,7 @@ trigger:
 - none
 
 pool:
-  default
+  vmImage: 'windows-latest'
 
 steps:
 - checkout: calculatorRepo
@@ -20,11 +20,9 @@ steps:
     script: |
       echo Upgrading pipenv and installing dependencies...
       pip install --upgrade pipenv
-      pipenv install
-      
+      pipenv install --skip-lock
       echo Starting CPU usage measurement in background...
       start /B cmd /c "pipenv run python record_cpu_usage.py --duration 60 --interval 1 --output cpu_usage.csv"
-      
       echo Starting memory usage measurement in background...
       start /B cmd /c "pipenv run python record_memory_usage.py --duration 60 --output memory_usage.csv"
       
