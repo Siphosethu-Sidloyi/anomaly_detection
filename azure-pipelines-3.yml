@@ -15,47 +15,49 @@ steps:
 - checkout: calculatorRepo
   displayName: 'Checkout Calculator Repository'
 
-
-- script: |
-    # Change into the repository directory
-    cd "$(Build.SourcesDirectory)/calculatorRepo"
-    
-    echo "Upgrading pipenv and installing dependencies..."
-    #pip install --upgrade pipenv
-    pipenv install
-    
-    # Start CPU usage measurement in the background
-    echo "Starting CPU usage measurement in background..."
-    pipenv run python record_cpu_usage.py --duration 60 --interval 1 --output cpu_usage.csv &
-    
-    # Start memory usage measurement in the background
-    echo "Starting memory usage measurement in background..."
-    pipenv run python record_memory_usage.py --duration 60 --output memory_usage.csv &
-    
-    # Run unit tests and measure duration
-    echo "Running unit tests and measuring duration..."
-    start=$(date +%s)
-    pipenv run python tests.py
-    end=$(date +%s)
-    duration=$((end - start))
-    echo "Unit tests took $duration seconds"
-    echo "test_duration,duration" > test_duration.csv
-    echo "unit_test,$duration" >> test_duration.csv
-    
-    # Wait for background processes to finish
-    echo "Waiting for background measurement processes to finish..."
-    wait
-    echo "Background measurements completed."
-    
-    # Aggregate all metrics into one CSV file
-    echo "Aggregating metrics into combined_metrics.csv..."
-    # Assuming each CSV has a header, take the header from the first file (cpu_usage.csv)
-    head -n 1 cpu_usage.csv > combined_metrics.csv
-    # Append data from each file (skip the header for memory_usage.csv and test_duration.csv)
-    tail -n +2 cpu_usage.csv >> combined_metrics.csv
-    tail -n +2 memory_usage.csv >> combined_metrics.csv
-    tail -n +2 test_duration.csv >> combined_metrics.csv
-    
-    echo "Combined metrics:"
-    cat combined_metrics.csv
-  displayName: 'Install, Measure, Run Tests, and Aggregate Metrics'
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Change into the repository directory
+      Set-Location "$(Build.SourcesDirectory)\calculatorRepo"
+      
+      Write-Host "Upgrading pipenv and installing dependencies..."
+      #pip install --upgrade pipenv
+      pipenv install
+      
+      # Start CPU usage measurement as a background job
+      Write-Host "Starting CPU usage measurement in background..."
+      $cpuJob = Start-Job -ScriptBlock { 
+          pipenv run python record_cpu_usage.py --duration 60 --interval 1 --output cpu_usage.csv 
+      }
+      
+      # Start memory usage measurement as a background job
+      Write-Host "Starting memory usage measurement in background..."
+      $memJob = Start-Job -ScriptBlock { 
+          pipenv run python record_memory_usage.py --duration 60 --output memory_usage.csv 
+      }
+      
+      # Run unit tests and measure duration
+      Write-Host "Running unit tests and measuring duration..."
+      $start = Get-Date
+      pipenv run python tests.py
+      $end = Get-Date
+      $duration = ($end - $start).TotalSeconds
+      Write-Host "Unit tests took $duration seconds"
+      
+      # Create CSV for test duration
+      "test_duration,duration" | Out-File -FilePath test_duration.csv -Encoding utf8
+      "unit_test,$duration" | Out-File -FilePath test_duration.csv -Append -Encoding utf8
+      
+      # Wait for background jobs to finish
+      Write-Host "Waiting for background measurement processes to finish..."
+      Wait-Job -Job $cpuJob, $memJob
+      
+      Write-Host "Background measurements completed."
+      
+      # Aggregate all metrics into one CSV file
+      Write-Host "Aggregating metrics into combined_metrics.csv..."
+      $cpuHeader = Get-Content -Path cpu_usage.csv -First 1
+      $cpuData   = Get-Content -Path cpu_usage.csv | Select-Object -Skip 1
+      $memData   = Get-Content -Path memory_usage.csv | Select-_
