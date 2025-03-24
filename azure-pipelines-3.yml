@@ -9,55 +9,44 @@ trigger:
 - none
 
 pool:
-  default
+  vmImage: 'windows-latest'
 
 steps:
 - checkout: calculatorRepo
   displayName: 'Checkout Calculator Repository'
 
-- task: PowerShell@2
+- task: CmdLine@2
   inputs:
-    targetType: 'inline'
     script: |
-      # Change into the repository directory
-      #Set-Location "$(Build.SourcesDirectory)\calculatorRepo"
-      
-      Write-Host "Upgrading pipenv and installing dependencies..."
-      #pip install --upgrade pipenv
+      echo Upgrading pipenv and installing dependencies...
+      pip install --upgrade pipenv
       pipenv install
       
-      # Start CPU usage measurement as a background job
-      Write-Host "Starting CPU usage measurement in background..."
-      $cpuJob = Start-Job -ScriptBlock { 
-          pipenv run python record_cpu_usage.py --duration 60 --interval 1 --output cpu_usage.csv 
-      }
+      echo Starting CPU usage measurement in background...
+      start /B cmd /c "pipenv run python record_cpu_usage.py --duration 60 --interval 1 --output cpu_usage.csv"
       
-      # Start memory usage measurement as a background job
-      Write-Host "Starting memory usage measurement in background..."
-      $memJob = Start-Job -ScriptBlock { 
-          pipenv run python record_memory_usage.py --duration 60 --output memory_usage.csv 
-      }
+      echo Starting memory usage measurement in background...
+      start /B cmd /c "pipenv run python record_memory_usage.py --duration 60 --output memory_usage.csv"
       
-      # Run unit tests and measure duration
-      Write-Host "Running unit tests and measuring duration..."
-      $start = Get-Date
+      echo Running unit tests and measuring duration...
+      for /f "delims=" %%a in ('powershell -NoProfile -Command "(Get-Date -UFormat %s)"') do set start=%%a
       pipenv run python tests.py
-      $end = Get-Date
-      $duration = ($end - $start).TotalSeconds
-      Write-Host "Unit tests took $duration seconds"
+      for /f "delims=" %%a in ('powershell -NoProfile -Command "(Get-Date -UFormat %s)"') do set end=%%a
+      set /A duration=end - start
+      echo Unit tests took %duration% seconds
+      (
+         echo test_duration,duration
+         echo unit_test,%duration%
+      ) > test_duration.csv
       
-      # Create CSV for test duration
-      "test_duration,duration" | Out-File -FilePath test_duration.csv -Encoding utf8
-      "unit_test,$duration" | Out-File -FilePath test_duration.csv -Append -Encoding utf8
+      echo Waiting for background measurement processes to finish...
+      timeout /T 65 /NOBREAK
       
-      # Wait for background jobs to finish
-      Write-Host "Waiting for background measurement processes to finish..."
-      Wait-Job -Job $cpuJob, $memJob
+      echo Aggregating metrics into combined_metrics.csv...
+      type cpu_usage.csv > combined_metrics.csv
+      more +1 memory_usage.csv >> combined_metrics.csv
+      more +1 test_duration.csv >> combined_metrics.csv
       
-      Write-Host "Background measurements completed."
-      
-      # Aggregate all metrics into one CSV file
-      Write-Host "Aggregating metrics into combined_metrics.csv..."
-      $cpuHeader = Get-Content -Path cpu_usage.csv -First 1
-      $cpuData   = Get-Content -Path cpu_usage.csv | Select-Object -Skip 1
-      $memData   = Get-Content -Path memory_usage.csv | Select-_
+      echo Combined metrics:
+      type combined_metrics.csv
+  displayName: 'Install, Measure, Run Tests, and Aggregate Metrics'
