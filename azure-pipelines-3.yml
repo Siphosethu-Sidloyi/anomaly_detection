@@ -9,7 +9,7 @@ trigger:
 - none
 
 pool:
-  vmImage: 'windows-latest'
+  default
 
 steps:
 - checkout: calculatorRepo
