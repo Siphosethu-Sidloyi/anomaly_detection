@@ -9,7 +9,7 @@ trigger:
 - main
 
 pool:
-  default
+  vmImage: 'ubuntu-latest'
 
 steps:
 - checkout: calculatorRepo
@@ -20,10 +20,10 @@ steps:
     targetType: 'inline'
     script: |
       # Change into the repository directory
-      #cd "$(Build.SourcesDirectory)/calculatorRepo"
+      cd "$(Build.SourcesDirectory)/calculatorRepo"
       
       echo "Upgrading pipenv and installing dependencies..."
-      #pip install --upgrade pipenv
+      pip install --upgrade pipenv
       pipenv install
       
       # Start CPU usage measurement in the background
@@ -34,25 +34,30 @@ steps:
       echo "Starting memory usage measurement in background..."
       pipenv run python record_memory_usage.py --duration 60 --output memory_usage.csv &
       
-- task: Bash@3
-  inputs:
-    targetType: 'inline'
-    script: |
-      cd "$(Build.SourcesDirectory)/calculatorRepo"
+      # Run unit tests and measure duration
       echo "Running unit tests and measuring duration..."
       start=$(date +%s)
       pipenv run python tests.py
       end=$(date +%s)
       duration=$((end - start))
       echo "Unit tests took $duration seconds"
-      # Optionally, write the duration to a CSV file for later aggregation
       echo "test_duration,duration" > test_duration.csv
       echo "unit_test,$duration" >> test_duration.csv
-  displayName: 'Run Unit Tests and Measure Duration'
       
-      # Wait for all background processes to finish
+      # Wait for background processes to finish
       echo "Waiting for background measurement processes to finish..."
       wait
+      echo "Background measurements completed."
       
-      echo "All processes completed."
-  displayName: 'Install, Measure, and Run Unit Tests'
+      # Aggregate all metrics into one CSV file
+      echo "Aggregating metrics into combined_metrics.csv..."
+      # Assuming each CSV has a header, take the header from the first file (cpu_usage.csv)
+      head -n 1 cpu_usage.csv > combined_metrics.csv
+      # Append data from each file (skip the header for memory_usage.csv and test_duration.csv)
+      tail -n +2 cpu_usage.csv >> combined_metrics.csv
+      tail -n +2 memory_usage.csv >> combined_metrics.csv
+      tail -n +2 test_duration.csv >> combined_metrics.csv
+      
+      echo "Combined metrics:"
+      cat combined_metrics.csv
+  displayName: 'Install, Measure, Run Tests, and Aggregate Metrics'
