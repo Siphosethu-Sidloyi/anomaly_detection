@@ -20,7 +20,7 @@ steps:
     targetType: 'inline'
     script: |
       # Change into the repository directory
-      Set-Location "$(Build.SourcesDirectory)\calculatorRepo"
+      #Set-Location "$(Build.SourcesDirectory)\calculatorRepo"
       
       Write-Host "Upgrading pipenv and installing dependencies..."
       #pip install --upgrade pipenv
