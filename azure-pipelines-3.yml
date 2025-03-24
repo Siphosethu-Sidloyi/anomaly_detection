@@ -7,8 +7,7 @@ pool:
 steps:
 - task: CmdLine@2
   inputs:
-    script: |
-      
+    script: |  
       echo Upgrading pipenv and installing dependencies...
       pipenv install --skip-lock
       
@@ -19,13 +18,13 @@ steps:
       start /B cmd /c "pipenv run python record_memory_usage.py 60 memory_usage.csv"
       
       echo Capturing start time...
-      for /f "usebackq" %%i in (`powershell -NoProfile -Command "Get-Date -UFormat %s"`) do set start=%%i
+      for /f %%i in ('powershell -NoProfile -Command "([int](Get-Date -UFormat s))"') do set start=%%i
       
       echo Running unit tests...
       pipenv run python tests.py
       
       echo Capturing end time...
-      for /f "usebackq" %%i in (`powershell -NoProfile -Command "Get-Date -UFormat %s"`) do set end=%%i
+      for /f %%i in ('powershell -NoProfile -Command "([int](Get-Date -UFormat s))"') do set end=%%i
       
       set /A duration=end - start
       echo Unit tests took %duration% seconds
