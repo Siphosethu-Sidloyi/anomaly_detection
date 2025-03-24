@@ -2,27 +2,34 @@ trigger:
 - none
 
 pool:
-  default
+  vmImage: 'windows-latest'
 
 steps:
-
 - task: CmdLine@2
   inputs:
     script: |
-      echo Upgrading pipenv and installing dependencies...
-      REM pip install --upgrade pipenv
-      pipenv install --skip-lock
-      echo Starting CPU usage measurement in background...
-      start /B cmd /c "pipenv run python record_cpu_usage.py --duration 60 --interval 1 --output cpu_usage.csv"
-      echo Starting memory usage measurement in background...
-      start /B cmd /c "pipenv run python record_memory_usage.py --duration 60 --output memory_usage.csv"
       
-      echo Running unit tests and measuring duration...
-      for /f "delims=" %%a in ('powershell -NoProfile -Command "(Get-Date -UFormat %s)"') do set start=%%a
+      echo Upgrading pipenv and installing dependencies...
+      pipenv install --skip-lock
+      
+      echo Starting CPU usage measurement in background...
+      start /B cmd /c "pipenv run python record_cpu_usage.py 60 1 cpu_usage.csv"
+      
+      echo Starting memory usage measurement in background...
+      start /B cmd /c "pipenv run python record_memory_usage.py 60 memory_usage.csv"
+      
+      echo Capturing start time...
+      for /f "usebackq" %%i in (`powershell -NoProfile -Command "Get-Date -UFormat %s"`) do set start=%%i
+      
+      echo Running unit tests...
       pipenv run python tests.py
-      for /f "delims=" %%a in ('powershell -NoProfile -Command "(Get-Date -UFormat %s)"') do set end=%%a
+      
+      echo Capturing end time...
+      for /f "usebackq" %%i in (`powershell -NoProfile -Command "Get-Date -UFormat %s"`) do set end=%%i
+      
       set /A duration=end - start
       echo Unit tests took %duration% seconds
+      
       (
          echo test_duration,duration
          echo unit_test,%duration%
