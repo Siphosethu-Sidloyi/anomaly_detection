@@ -34,9 +34,21 @@ steps:
       echo "Starting memory usage measurement in background..."
       pipenv run python record_memory_usage.py --duration 60 --output memory_usage.csv &
       
-      # Run unit tests while the measurements are running
-      echo "Running unit tests..."
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: |
+      cd "$(Build.SourcesDirectory)/calculatorRepo"
+      echo "Running unit tests and measuring duration..."
+      start=$(date +%s)
       pipenv run python tests.py
+      end=$(date +%s)
+      duration=$((end - start))
+      echo "Unit tests took $duration seconds"
+      # Optionally, write the duration to a CSV file for later aggregation
+      echo "test_duration,duration" > test_duration.csv
+      echo "unit_test,$duration" >> test_duration.csv
+  displayName: 'Run Unit Tests and Measure Duration'
       
       # Wait for all background processes to finish
       echo "Waiting for background measurement processes to finish..."
