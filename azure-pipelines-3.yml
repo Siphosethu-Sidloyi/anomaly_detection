@@ -20,10 +20,10 @@ steps:
     targetType: 'inline'
     script: |
       # Change into the repository directory
-      cd "$(Build.SourcesDirectory)/calculatorRepo"
+      #cd "$(Build.SourcesDirectory)/calculatorRepo"
       
       echo "Upgrading pipenv and installing dependencies..."
-      pip install --upgrade pipenv
+      #pip install --upgrade pipenv
       pipenv install
       
       # Start CPU usage measurement in the background
