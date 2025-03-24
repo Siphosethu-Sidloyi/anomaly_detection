@@ -1,0 +1,46 @@
+resources:
+  repositories:
+    - repository: calculatorRepo
+      type: github
+      name: Siphosethu-Sidloyi/calculator
+      endpoint: Siphosethu-Sidloyi
+
+trigger:
+- main
+
+pool:
+  default
+
+steps:
+- checkout: calculatorRepo
+  displayName: 'Checkout Calculator Repository'
+
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Change into the repository directory
+      #cd "$(Build.SourcesDirectory)/calculatorRepo"
+      
+      echo "Upgrading pipenv and installing dependencies..."
+      #pip install --upgrade pipenv
+      pipenv install
+      
+      # Start CPU usage measurement in the background
+      echo "Starting CPU usage measurement in background..."
+      pipenv run python record_cpu_usage.py --duration 60 --interval 1 --output cpu_usage.csv &
+      
+      # Start memory usage measurement in the background
+      echo "Starting memory usage measurement in background..."
+      pipenv run python record_memory_usage.py --duration 60 --output memory_usage.csv &
+      
+      # Run unit tests while the measurements are running
+      echo "Running unit tests..."
+      pipenv run python tests.py
+      
+      # Wait for all background processes to finish
+      echo "Waiting for background measurement processes to finish..."
+      wait
+      
+      echo "All processes completed."
+  displayName: 'Install, Measure, and Run Unit Tests'
